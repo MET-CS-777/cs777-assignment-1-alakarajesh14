@@ -38,7 +38,7 @@ def correctRows(p):
 
 #Main
 if __name__ == "__main__":
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 3:
         print("Usage: main_task1 <file> <output> ", file=sys.stderr)
         exit(-1)
     
@@ -46,25 +46,18 @@ if __name__ == "__main__":
     
     rdd = sc.textFile(sys.argv[1])
 
-    #Task 1
-    #Your code goes here
+#Task 1
+    cleaned_rdd = rdd.map(lambda line: line.split(",")) \
+                        .filter(lambda p: correctRows(p) is not None)
+    
+    medallion_driver = cleaned_rdd.map(lambda p: (p[0], p[1]))
+    unique_pairs = medallion_driver.distinct()
+    
+    driver_count = unique_pairs.map(lambda x: (x[0], 1)) \
+                               .reduceByKey(add)
+    
+    results_1 = driver_count.sortBy(lambda x: x[1], ascending=False).zipWithIndex() \
+                               .filter(lambda x: x[1] < 10) \
+                               .map(lambda x: x[0])
 
     results_1.coalesce(1).saveAsTextFile(sys.argv[2])
-
-
-    #Task 2
-    #Your code goes here
-
-
-    #savings output to argument
-    results_2.coalesce(1).saveAsTextFile(sys.argv[3])
-
-
-    #Task 3 - Optional 
-    #Your code goes here
-
-    #Task 4 - Optional 
-    #Your code goes here
-
-
-    sc.stop()
